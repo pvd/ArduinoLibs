@@ -3,11 +3,12 @@
 #ifndef WII_MOTION_H
 #define WII_MOTION_H
 
+#include <WProgram.h>
 #include <math.h>
 #include <Wire.h>
+#include <math_ex.h>
 
-//#define GYROPRI         0.998 
-#define GYROPRI         0.94 // gyroscope priority
+#define GYROPRI         0.998 
 #define GYRALPHA        0.8
 #define ACCALPHA        0.6
 #define WMINTERLEAVE    3000 // time that you must wait to read first wm+ then nunchuck
@@ -34,23 +35,54 @@
 #define ACCYDIR +
 #define ACCZDIR +
 
-typedef struct
+struct TGyro
 {
+  float sampleTime;
   float p,r,y;    // current 
   float zp,zr,zy; // zero 
   float ip,ir,iy; // istant 
   char  slowp,slowr,slowy;
-} 
-TGyro;
+  
+  void CalcRollAndPitch()
+  {
+		// using 2.72mV/deg/s and 1.35V reference 
+		// 8192 is 594deg/s (1.35/0.00272)
+		float p = GYROPDIR(ip - zp) * 594.0 / 8192.0;
+		float r = GYRORDIR(ir - zr) * 594.0 / 8192.0;
+		float y = GYROYDIR(iy - zy) * 594.0 / 8192.0;
+		
+		if (! slowp) // pitch fast?
+			p /= 0.22;
+		
+		if (! slowr) // roll fast?
+			r /= 0.22;
+		
+		if (! slowy) // yaw fast?
+			y /= 0.22;
+		
+		p = p * GYRALPHA + (1 - GYRALPHA) * p;
+		r = r * GYRALPHA + (1 - GYRALPHA) * r;
+		y = y * GYRALPHA + (1 - GYRALPHA) * y;  
+  }
+}; 
 
-typedef struct
+struct TAccel
 {
   int   ix,iy,iz;
   float ox,oy,oz;
   float x,y,z;
   float ipitch,iroll;
-} 
-TAccel;
+  
+  void CalcRollAndPitch()
+  {
+		x = ACCXDIR(ix - ox); 
+		y = ACCYDIR(iy - oy); 
+		z = ACCZDIR(iz - oz); 
+		
+		ipitch = arctan2(y, sqrt(x * x + z * z) ) * 180 / PI;
+		iroll  = arctan2(x, sqrt(y * y + z * z) ) * 180 / PI;
+  }
+}; 
 
 // WiiMotion
 class WiiMotion
@@ -60,10 +92,10 @@ private:
   TAccel m_accel;
   
   unsigned long m_prevTime;  
-  float  m_dt;
   float  m_pitch;
   float  m_roll;
 
+  int getSensorData();
 public:
   WiiMotion();
   
@@ -89,11 +121,6 @@ public:
   TGyro gyroData()
   {
     return m_gyro;
-  }
-  
-  float deltatime()
-  {
-    return m_dt;
   }
 };
 
