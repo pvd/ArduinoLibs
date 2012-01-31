@@ -8,7 +8,8 @@
 #include <Wire.h>
 #include <math_ex.h>
 
-#define GYROPRI         0.998 
+//#define GYROPRI         0.998 
+#define GYROPRI         0.9 
 #define GYRALPHA        0.8
 #define ACCALPHA        0.6
 #define WMINTERLEAVE    3000 // time that you must wait to read first wm+ then nunchuck
@@ -47,9 +48,9 @@ struct TGyro
   {
 		// using 2.72mV/deg/s and 1.35V reference 
 		// 8192 is 594deg/s (1.35/0.00272)
-		float p = GYROPDIR(ip - zp) * 594.0 / 8192.0;
-		float r = GYRORDIR(ir - zr) * 594.0 / 8192.0;
-		float y = GYROYDIR(iy - zy) * 594.0 / 8192.0;
+		p = GYROPDIR(ip - zp) * 594.0 / 8192.0;
+		r = GYRORDIR(ir - zr) * 594.0 / 8192.0;
+		y = GYROYDIR(iy - zy) * 594.0 / 8192.0;
 		
 		if (! slowp) // pitch fast?
 			p /= 0.22;
@@ -63,6 +64,7 @@ struct TGyro
 		p = p * GYRALPHA + (1 - GYRALPHA) * p;
 		r = r * GYRALPHA + (1 - GYRALPHA) * r;
 		y = y * GYRALPHA + (1 - GYRALPHA) * y;  
+
   }
 }; 
 

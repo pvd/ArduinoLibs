@@ -119,7 +119,7 @@ int WiiMotion::getSensorData()
     m_gyro.slowr = (buf[4] & 0x2) >> 1;
     m_gyro.slowy = (buf[3] & 0x2) >> 1;
     
-    okWM = 1;    
+    okWM = 1;
   }
   else //if (buf[0]&buf[1]&0x80) // read analog stick high bit MUST be 1 for SX,SY
   {
@@ -140,47 +140,15 @@ void WiiMotion::update()
 {
   int sensorUpdated = getSensorData();
   if (sensorUpdated == 1)
-  {
-    m_gyro.CalcRollAndPitch();
-//		// using 2.72mV/deg/s and 1.35V reference 
-//		// 8192 is 594deg/s (1.35/0.00272)
-// 		float p = GYROPDIR(m_gyro.ip - m_gyro.zp) * 594.0 / 8192.0;
-// 		float r = GYRORDIR(m_gyro.ir - m_gyro.zr) * 594.0 / 8192.0;
-// 		float y = GYROYDIR(m_gyro.iy - m_gyro.zy) * 594.0 / 8192.0;
-// 		
-// 		if (! m_gyro.slowp) // pitch fast?
-// 			p /= 0.22;
-// 		
-// 		if (! m_gyro.slowr) // roll fast?
-// 			r /= 0.22;
-// 		
-// 		if (! m_gyro.slowy) // yaw fast?
-// 			y /= 0.22;
-// 		
-// 		m_gyro.p = m_gyro.p * GYRALPHA + (1 - GYRALPHA) * p;
-// 		m_gyro.r = m_gyro.r * GYRALPHA + (1 - GYRALPHA) * r;
-// 		m_gyro.y = m_gyro.y * GYRALPHA + (1 - GYRALPHA) * y;
+  {    
+    m_gyro.CalcRollAndPitch();    
   }
   else if (sensorUpdated == 2)
   {
     m_accel.CalcRollAndPitch();
-// 		float x = ACCXDIR(m_accel.ix - m_accel.ox); 
-// 		float y = ACCYDIR(m_accel.iy - m_accel.oy); 
-// 		float z = ACCZDIR(m_accel.iz - m_accel.oz); 
-// 		
-// 		m_accel.ipitch = arctan2(y, sqrt(x * x + z * z) ) * 180 / PI;
-// 		m_accel.iroll  = arctan2(x, sqrt(y * y + z * z) ) * 180 / PI;
-// 		
-// 		m_accel.x = x;
-// 		m_accel.y = y;
-// 		m_accel.z = z;
   }
 
   m_roll = GYROPRI * (m_roll + m_gyro.r * m_gyro.sampleTime) + (1-GYROPRI) * m_accel.iroll; 
   m_pitch = GYROPRI * (m_pitch + m_gyro.p * m_gyro.sampleTime) + (1-GYROPRI) * m_accel.ipitch;
 }
 
-void CalcRollAndPitch()
-{
-
-}
